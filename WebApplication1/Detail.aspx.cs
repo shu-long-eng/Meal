@@ -20,6 +20,7 @@ namespace WebApplication1
         static List<MenuModel> menulist = new List<MenuModel>();
         private string _menulist="";
         int ShopID;
+        int totalcount =0;
         protected void Page_init(object sender, EventArgs e)
         {
             if (!LoginHelper.HasLogined())
@@ -68,6 +69,35 @@ namespace WebApplication1
             string ss = droplist.ToolTip;
             string[] arr = ss.Split(',');
             string count = droplist.SelectedValue;
+            int menutypecount = DBbase.GetMenuCount(ShopID);
+
+
+            for (var i = 0; i < menulist.Count; i++)
+            {
+                if (arr[0] == menulist[i].MealName)
+                {
+                    count = (Convert.ToInt32(count) + Convert.ToInt32(menulist[i].MealCount)).ToString();
+                    menulist[i].MealCount = count;
+                }else if (arr[0] != menulist[i].MealName && menulist.Count<menutypecount)
+                {
+                    menulist.Add(new MenuModel() { AccountID = model.ID, GroupID = _groupID, MeunID = arr[1], ShopID = ShopID, MealCount = count, MealName = arr[0] });
+                    break;
+                }
+                
+            }
+
+            if (menulist.Count == 0) { 
+            menulist.Add(new MenuModel() { AccountID = model.ID, GroupID = _groupID, MeunID = arr[1], ShopID = ShopID, MealCount = count, MealName = arr[0] });
+            }
+
+            for (var i = 0; i < menulist.Count; i++)
+            {
+                _menulist += menulist[i].MealName + "*" + menulist[i].MealCount;
+            }
+            this.Literal1.Text = _menulist;
+
+
+
 
             //for (var i = 0; i < menulist.Count; i++)
             //{
@@ -85,29 +115,23 @@ namespace WebApplication1
             //for (var i=0; i < menulist.Count; i++) { 
             //_menulist += menulist[i].MealName + "*" + menulist[i].MealCount;
             //}
-            
-            menulist.Add(new MenuModel() { AccountID = model.ID, GroupID = _groupID, MeunID = arr[1], ShopID = ShopID, MealCount = count, MealName = arr[0] });
-            
-            for(var i = 0; i < menulist.Count; i++)
-            {
-                for(var j=0;j< arr.Length; j++)
-                {
-
-                }
-            }
 
 
-            for (var i = 0; i < menulist.Count; i++)
-            {
-                _menulist += menulist[i].MealName + "*" + menulist[i].MealCount;
-                
-            }
-            this.Literal1.Text = _menulist;
+
+
+
+            //menulist.Add(new MenuModel() { AccountID = model.ID, GroupID = _groupID, MeunID = arr[1], ShopID = ShopID, MealCount = count, MealName = arr[0] });
+
+
+
+            //for (var i = 0; i < menulist.Count; i++)
+            //{
+
+            //    _menulist += menulist[i].MealName + "*" + menulist[i].MealCount;
+
+            //}
+            //this.Literal1.Text = _menulist;
         }
-
-
-
-
         protected void MenuRepeater_ItemDataBound(object sender, RepeaterItemEventArgs e)
         {
             

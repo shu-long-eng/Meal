@@ -144,5 +144,26 @@ namespace WebApplication1.Manager
                 }
             }
         }
+        public static int GetMenuCount(int ID)
+        {
+            string connstr = Helpers.GetConnectionString.GetConnection();
+            string querystr = @"select count('ID') from Menu where ShopID = @ID;";
+            using (SqlConnection con = new SqlConnection(connstr))
+            {
+                SqlCommand command = new SqlCommand(querystr, con);
+                command.Parameters.AddWithValue("@ID", ID);
+                try
+                {
+                    con.Open();
+                    int count = Convert.ToInt32(command.ExecuteScalar());
+                    return count;
+                }
+                catch (Exception e)
+                {
+                    HttpContext.Current.Response.Write(e);
+                    return 0;
+                }
+            }
+        }
     }
 }
