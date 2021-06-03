@@ -20,12 +20,12 @@
     <div>
         <asp:Repeater ID="GroupRepeater" runat="server">
             <ItemTemplate>
-                <a href="../Detail.aspx?ID=<%# Eval("ID") %>">
+                <a href="../Detail.aspx?ID=<%# Eval("ID") %>&ShopID=<%# Eval("ShopID") %>">
                     <div class="jumbotron row">
                         <img src="Image/<%# Eval("ImageUrl") %>" /><h1 id="groupname"><p><%# Eval("GroupName") %></p></h1>
                         
                     </div>
-                    主揪:<%# Eval("AccountName") %> 店名:<%# Eval("ShopName") %> 目前人數:<%# Eval("Count") %>
+                    主揪:<%# Eval("AccountName") %> 店名:<%# Eval("ShopName") %> 目前人數
                 </a>
             </ItemTemplate>
         </asp:Repeater>

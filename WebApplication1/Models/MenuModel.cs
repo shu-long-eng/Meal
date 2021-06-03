@@ -13,5 +13,6 @@ namespace WebApplication1.Models
         public int ShopID { get; set; }
         public string MealCount { get; set; }
         public string MealName { get; set; }
+        public int total { get; set; }
     }
 }

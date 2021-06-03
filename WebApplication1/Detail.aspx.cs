@@ -19,19 +19,18 @@ namespace WebApplication1
 
         static List<MenuModel> menulist = new List<MenuModel>();
         private string _menulist="";
-        int ShopID;
-        int totalcount =0;
+        int ShopID = Convert.ToInt32(HttpContext.Current.Request.QueryString["ShopID"]);
         protected void Page_init(object sender, EventArgs e)
         {
             if (!LoginHelper.HasLogined())
             {
                 Response.Redirect("~/LoginPage.aspx");
             }
-
+            //從DB取得畫面資料
             DataTable DetailDT = DBbase.GetGroup(_groupID);
             this.GroupRepeater.DataSource = DetailDT;
             this.GroupRepeater.DataBind();
-             ShopID = (int)DetailDT.Rows[0]["ShopID"];
+            //ShopID = (int)DetailDT.Rows[0]["ShopID"];
             this.MenuRepeater.DataSource = DBbase.GetMenu(ShopID);
             this.MenuRepeater.DataBind();
             var lll = this.MenuRepeater.FindControl("CountList") as DropDownList;
@@ -50,7 +49,9 @@ namespace WebApplication1
 
 
             this.Image1.ImageUrl = "~/Image/" + acclist[0].ImageUrl;
-            
+            this.MemberRepeater.DataSource = DBbase.GetOrderAccount(_groupID);
+            this.MemberRepeater.DataBind();
+
         }
 
         protected void BackBtn_Click(object sender, EventArgs e)
@@ -58,8 +59,6 @@ namespace WebApplication1
             Response.Redirect("~/HomePage.aspx");
             
         }
-
-       
 
         protected void CountList_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -71,66 +70,33 @@ namespace WebApplication1
             string count = droplist.SelectedValue;
             int menutypecount = DBbase.GetMenuCount(ShopID);
 
-
             for (var i = 0; i < menulist.Count; i++)
             {
                 if (arr[0] == menulist[i].MealName)
                 {
-                    count = (Convert.ToInt32(count) + Convert.ToInt32(menulist[i].MealCount)).ToString();
+                    
                     menulist[i].MealCount = count;
-                }else if (arr[0] != menulist[i].MealName && menulist.Count<menutypecount)
+                    menulist[i].total = Convert.ToInt32(count) * Convert.ToInt32(arr[2]);
+                }
+                else if (arr[0] != menulist[i].MealName && menulist.Count < menutypecount)
                 {
-                    menulist.Add(new MenuModel() { AccountID = model.ID, GroupID = _groupID, MeunID = arr[1], ShopID = ShopID, MealCount = count, MealName = arr[0] });
+                    menulist.Add(new MenuModel() { AccountID = model.ID, GroupID = _groupID, MeunID = arr[1], ShopID = ShopID, MealCount = count, MealName = arr[0],total = Convert.ToInt32(count) * Convert.ToInt32(arr[2]) });
                     break;
                 }
-                
-            }
 
-            if (menulist.Count == 0) { 
-            menulist.Add(new MenuModel() { AccountID = model.ID, GroupID = _groupID, MeunID = arr[1], ShopID = ShopID, MealCount = count, MealName = arr[0] });
             }
-
+            if (menulist.Count == 0)
+            {
+                menulist.Add(new MenuModel() { AccountID = model.ID, GroupID = _groupID, MeunID = arr[1], ShopID = ShopID, MealCount = count, MealName = arr[0],total = Convert.ToInt32(count)* Convert.ToInt32(arr[2]) });
+            }
+            int total = 0;
             for (var i = 0; i < menulist.Count; i++)
             {
                 _menulist += menulist[i].MealName + "*" + menulist[i].MealCount;
+                total += menulist[i].total;
             }
-            this.Literal1.Text = _menulist;
+            this.Literal1.Text = _menulist + $"總額:{total}";
 
-
-
-
-            //for (var i = 0; i < menulist.Count; i++)
-            //{
-            //    if (arr[0] == menulist[i].MealName)
-            //    {
-            //        count = (Convert.ToInt32(count) + Convert.ToInt32(menulist[i].MealCount)).ToString();
-            //        menulist[i].MealCount = count;
-
-            //    }
-            //}
-            //if(menulist.Count == 0) { 
-            //menulist.Add(new MenuModel() { AccountID = model.ID, GroupID = _groupID, MeunID = arr[1], ShopID = ShopID, MealCount = count, MealName = arr[0] });
-            //}
-
-            //for (var i=0; i < menulist.Count; i++) { 
-            //_menulist += menulist[i].MealName + "*" + menulist[i].MealCount;
-            //}
-
-
-
-
-
-            //menulist.Add(new MenuModel() { AccountID = model.ID, GroupID = _groupID, MeunID = arr[1], ShopID = ShopID, MealCount = count, MealName = arr[0] });
-
-
-
-            //for (var i = 0; i < menulist.Count; i++)
-            //{
-
-            //    _menulist += menulist[i].MealName + "*" + menulist[i].MealCount;
-
-            //}
-            //this.Literal1.Text = _menulist;
         }
         protected void MenuRepeater_ItemDataBound(object sender, RepeaterItemEventArgs e)
         {
@@ -138,6 +104,35 @@ namespace WebApplication1
             
         }
 
-       
+        protected void Button2_Click(object sender, EventArgs e)
+        {
+            for (var i = 0; i < menulist.Count; i++)
+            {
+                DBbase.InsertOrder(menulist[i].AccountID,Convert.ToInt32(menulist[i].MeunID), 
+                    menulist[i].GroupID, menulist[i].ShopID,menulist[i].MealName
+                    ,Convert.ToInt32(menulist[i].MealCount),menulist[i].total);
+            }
+            menulist.Clear();
+            string targetUrl = $"~/Detail.aspx?ID={_groupID}&ShopID={ShopID}";
+            Response.Redirect(targetUrl);
+        }
+
+        protected void MemberRepeater_ItemDataBound(object sender, RepeaterItemEventArgs e)
+        {
+            DataRowView dr = e.Item.DataItem as DataRowView;
+            int AccountID = Convert.ToInt32(dr["AccountID"]);
+            Repeater repeater = e.Item.FindControl("Repeater1") as Repeater;
+            repeater.DataSource = DBbase.GetMemberOrder(AccountID, _groupID);
+            repeater.DataBind();
+        }
+
+        protected void MemberRepeater_ItemCommand(object source, RepeaterCommandEventArgs e)
+        {
+            
+            int AccountID = Convert.ToInt32(e.CommandArgument);
+            DBbase.DeleteOrder(AccountID, _groupID);
+            string targetUrl = $"~/Detail.aspx?ID={_groupID}&ShopID={ShopID}";
+            Response.Redirect(targetUrl);
+        }    
     }
 }
