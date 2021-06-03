@@ -92,7 +92,7 @@ namespace WebApplication1.Manager
         public static DataTable GetGroup(int ID)
         {
             string connstr = Helpers.GetConnectionString.GetConnection();
-            string querystr = $@"SELECT GroupName.ID,GroupName.Name as GroupName,GroupName.ImageUrl,Account.AccountName as AccountName,Shop.Name as ShopName,Shop.ID as ShopID,MealCount.Count FROM GroupName
+            string querystr = $@"SELECT GroupName.ID,GroupName.Name as GroupName,GroupName.ImageUrl,Account.AccountName as AccountName,Shop.Name as ShopName,Shop.ID as ShopID FROM GroupName
                                  left join Account on Account.ID = AccountID
                                  left join Shop on Shop.ID = ShopID
                                  
