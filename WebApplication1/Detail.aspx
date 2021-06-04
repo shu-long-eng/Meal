@@ -26,13 +26,13 @@
             border: 2px solid black;
         }
 
-        .MenuImg,#ImageAcc {
+        .MenuImg, #ImageAcc {
             height: 80px;
             width: 80px;
             background-color: red;
         }
 
-        #order {
+        #order, #totalprice {
             height: 100px;
             border: 2px solid black;
         }
@@ -40,43 +40,39 @@
 </head>
 <body class="container">
     <form id="form1" runat="server">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         <div>
-            <asp:Repeater ID="GroupRepeater" runat="server">
-                <ItemTemplate>
-                    <div class="row">
-                        <div>
+            <div class="row">
+                <asp:Repeater ID="GroupRepeater" runat="server" OnItemCommand="GroupRepeater_ItemCommand" OnItemDataBound="GroupRepeater_ItemDataBound">
+                    <ItemTemplate>
+                        <div class="col-3">
                             <img id="MainPic" src="Image/<%# Eval("ImageUrl") %>" /><h1 id="groupname">
                                 <p><%# Eval("GroupName") %></p>
                             </h1>
                             狀態:<asp:DropDownList ID="StatusList" runat="server">
-                                <asp:ListItem>未結團</asp:ListItem>
-                                <asp:ListItem>已結團</asp:ListItem>
-                                <asp:ListItem>已送達</asp:ListItem>
-                            </asp:DropDownList><br />
+                                <asp:ListItem Value="0">未結團</asp:ListItem>
+                                <asp:ListItem Value="1">已結團</asp:ListItem>
+                                <asp:ListItem Value="2">已送達</asp:ListItem>
+                            </asp:DropDownList>
+                            <asp:Button ID="GroupStatus" runat="server" Text="確定"/>
+                            <br />
                             店名:<%# Eval("ShopName") %><br />
                             主揪:<%# Eval("AccountName") %><br />
                         </div>
-                        <div>
-                            
+                    </ItemTemplate>
+                </asp:Repeater>
+                 <div class="col-8" id="totalprice">
+                     小計:<br />
+                            <asp:Repeater ID="SubTotalRepeater" runat="server">
+                                <ItemTemplate>
+                                    
+                                    <%# Eval("MenuName") %> * <%# Eval("MenuCount") %><br />
+                                    
+                                </ItemTemplate>
+                            </asp:Repeater>
+                     總額:<asp:Literal ID="SubTotal" runat="server"></asp:Literal>
                         </div>
-                    </div>
-                </ItemTemplate>
-            </asp:Repeater>
+
+            </div>
             <br />
             <br />
             菜單
@@ -87,8 +83,8 @@
                             <img class="MenuImg" alt="" src="Image/<%# Eval("ImageUrl") %>" />
                             $<%# Eval("Price") %>
                             <%# Eval("Menu") %>
-                            <asp:DropDownList ID="CountList" AutoPostBack="true" runat="server"  ToolTip='<%# Eval("Menu") +","+Eval("MenuID")+","+Eval("Price")%>' OnSelectedIndexChanged="CountList_SelectedIndexChanged">  
-				<asp:ListItem Value="0">0</asp:ListItem>
+                            <asp:DropDownList ID="CountList" AutoPostBack="true" runat="server" ToolTip='<%# Eval("Menu") +","+Eval("MenuID")+","+Eval("Price")%>' OnSelectedIndexChanged="CountList_SelectedIndexChanged">
+                                <asp:ListItem Value="0">0</asp:ListItem>
                                 <asp:ListItem Value="1">1</asp:ListItem>
                                 <asp:ListItem Value="2">2</asp:ListItem>
                                 <asp:ListItem Value="3">3</asp:ListItem>
@@ -111,12 +107,13 @@
                 <asp:Repeater ID="MemberRepeater" runat="server" OnItemDataBound="MemberRepeater_ItemDataBound" OnItemCommand="MemberRepeater_ItemCommand">
                     <ItemTemplate>
                         <div class="col-3 Menu">
-                            <asp:Button CssClass="close" ID="Button1" runat="server" Text="&times;" CommandArgument='<%# Eval("AccountID") %>'/><img alt="" src="Image/<%# Eval("ImageUrl") %>" id="Image2" />
+                            <asp:Button CssClass="close" ID="Button1" runat="server" Text="&times;" CommandArgument='<%# Eval("AccountID") %>' /><img alt="" src="Image/<%# Eval("ImageUrl") %>" id="Image2" />
                             <asp:Repeater ID="Repeater1" runat="server">
                                 <ItemTemplate>
                                     <div>
-                                    <%# Eval("MenuName") %> * <%# Eval("Count") %> <br />
-                                        </div>
+                                        <%# Eval("MenuName") %> * <%# Eval("Count") %>
+                                        <br />
+                                    </div>
                                 </ItemTemplate>
                             </asp:Repeater>
                         </div>
@@ -124,17 +121,16 @@
                 </asp:Repeater>
             </div>
 
-
             <br />
             <br />
 
-           <div class="row" id="order">
-               <div>
-                   <asp:Image ID="Image1" runat="server" />
-                   <asp:Literal ID="Literal1" runat="server"></asp:Literal>
-                   <asp:Button ID="Button2" runat="server" Text="送出" OnClick="Button2_Click"/>
-               </div>
-           </div>
+            <div class="row" id="order">
+                <div>
+                    <asp:Image ID="Image1" runat="server" />
+                    <asp:Literal ID="Literal1" runat="server"></asp:Literal>
+                    <asp:Button ID="Button2" runat="server" Text="送出" OnClick="Button2_Click" />
+                </div>
+            </div>
 
             <asp:Button ID="BackBtn" runat="server" Text="Back" OnClick="BackBtn_Click" />
         </div>

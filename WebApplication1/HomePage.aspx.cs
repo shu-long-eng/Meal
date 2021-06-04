@@ -118,5 +118,14 @@ namespace WebApplication1
 
             return retText;
         }
+
+        protected void GroupRepeater_ItemDataBound(object sender, RepeaterItemEventArgs e)
+        {
+            DataRowView dr = e.Item.DataItem as DataRowView;
+            int GroupID = Convert.ToInt32(dr["ID"]);
+            Repeater repeater = e.Item.FindControl("Repeater1") as Repeater;
+            repeater.DataSource = DBbase.GetMemberCount(GroupID);
+            repeater.DataBind();
+        }
     }
 }

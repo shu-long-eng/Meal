@@ -92,7 +92,7 @@ namespace WebApplication1.Manager
         public static DataTable GetGroup(int ID)
         {
             string connstr = Helpers.GetConnectionString.GetConnection();
-            string querystr = $@"SELECT GroupName.ID,GroupName.Name as GroupName,GroupName.ImageUrl,Account.AccountName as AccountName,Shop.Name as ShopName,Shop.ID as ShopID FROM GroupName
+            string querystr = $@"SELECT GroupName.ID,GroupName.Name as GroupName,GroupName.ImageUrl,Account.AccountName as AccountName,Shop.Name as ShopName,Shop.ID as ShopID,StatusID FROM GroupName
                                  left join Account on Account.ID = AccountID
                                  left join Shop on Shop.ID = ShopID
                                  
@@ -100,8 +100,8 @@ namespace WebApplication1.Manager
             using (SqlConnection con = new SqlConnection(connstr))
             {
                 SqlCommand command = new SqlCommand(querystr, con);
-                
-                
+
+
                 try
                 {
                     con.Open();
@@ -165,11 +165,11 @@ namespace WebApplication1.Manager
                 }
             }
         }
-        public static void InsertOrder(int AccountID, int MeunID, int GroupID, int ShopID,string MenuName, int MenuCount,int TotalPrice)
+        public static void InsertOrder(int AccountID, int MeunID, int GroupID, int ShopID, string MenuName, int MenuCount, int TotalPrice)
         {
             string connstr = Helpers.GetConnectionString.GetConnection();
             string query = @"Insert into [Order] (AccountID, MeunID, GroupID, ShopID,MenuName,MenuCount,TotalPrice,Isdelete) values (@AccountID,@MeunID, @GroupID, @ShopID,@MenuName,@MenuCount,@TotalPrice,'False');";
-            using(SqlConnection con = new SqlConnection(connstr))
+            using (SqlConnection con = new SqlConnection(connstr))
             {
                 SqlCommand command = new SqlCommand(query, con);
                 command.Parameters.AddWithValue("@AccountID", AccountID);
@@ -195,7 +195,7 @@ namespace WebApplication1.Manager
         {
             string connstr = Helpers.GetConnectionString.GetConnection();
             string querystr = @"select [Order].Isdelete,AccountID,Account.ImageUrl,GroupID from [Order]  left join Account on Account.ID = AccountID   where Isdelete = 'False' and GroupID = @ID  group by AccountID,Account.ImageUrl,[Order].Isdelete,GroupID;";
-            using(SqlConnection con = new SqlConnection(connstr))
+            using (SqlConnection con = new SqlConnection(connstr))
             {
                 SqlCommand command = new SqlCommand(querystr, con);
                 command.Parameters.AddWithValue("@ID", ID);
@@ -215,13 +215,13 @@ namespace WebApplication1.Manager
                 }
             }
         }
-        public static DataTable GetMemberOrder(int AccountID,int GroupID)
+        public static DataTable GetMemberOrder(int AccountID, int GroupID)
         {
             string connstr = Helpers.GetConnectionString.GetConnection();
             string querystr = $@"select Sum(MenuCount) as [count],SUM(TotalPrice) as Price, Account.ID as accountID,MenuName
                                  from [Order] left join Account on Account.ID = AccountID where AccountID = @AccountID and GroupID = @GroupID  and Isdelete = 'false' group by 
                                  MeunID,Account.ID,[Order].Price,[Order].MenuName;";
-            using(SqlConnection con = new SqlConnection(connstr))
+            using (SqlConnection con = new SqlConnection(connstr))
             {
                 SqlCommand command = new SqlCommand(querystr, con);
                 command.Parameters.AddWithValue("@AccountID", AccountID);
@@ -235,7 +235,7 @@ namespace WebApplication1.Manager
                     con.Close();
                     return dt;
                 }
-                catch(Exception e)
+                catch (Exception e)
                 {
                     throw e;
                 }
@@ -246,7 +246,7 @@ namespace WebApplication1.Manager
             string connstr = Helpers.GetConnectionString.GetConnection();
             string queystr = $@"UPDATE [Order] SET Isdelete = 'true' 
             where AccountID = {AccountID} and GroupID = {GroupID}";
-            using(SqlConnection con = new SqlConnection(connstr))
+            using (SqlConnection con = new SqlConnection(connstr))
             {
                 SqlCommand command = new SqlCommand(queystr, con);
                 try
@@ -256,6 +256,89 @@ namespace WebApplication1.Manager
                     con.Close();
                 }
                 catch (Exception e)
+                {
+                    throw e;
+                }
+            }
+        }
+        public static DataTable GetMemberCount(int GroupID)
+        {
+            string connstr = Helpers.GetConnectionString.GetConnection();
+            string querystr = $@"select count([count]) as MemberCount from (select COUNT(AccountID) as [count] from [order] where GroupID = {GroupID} and Isdelete='false' group by AccountID) as a ;";
+            using (SqlConnection con = new SqlConnection(connstr))
+            {
+                SqlCommand command = new SqlCommand(querystr, con);
+                try
+                {
+                    con.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+                    DataTable dt = new DataTable();
+                    dt.Load(reader);
+                    con.Close();
+                    return dt;
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
+            }
+        }
+        public static DataTable GetSubTotal(int GroupID)
+        {
+            string connstr = Helpers.GetConnectionString.GetConnection();
+            string querystr = $@"select MenuName,SUM(MenuCount) as MenuCount from [order] where Isdelete ='false' and GroupID = {GroupID} group by MeunID,MenuName;";
+
+            using (SqlConnection con = new SqlConnection(connstr))
+            {
+                SqlCommand command = new SqlCommand(querystr, con);
+                try
+                {
+                    con.Open();
+                    SqlDataReader reader = command.ExecuteReader();
+                    DataTable dt = new DataTable();
+                    dt.Load(reader);
+                    con.Close();
+                    return dt;
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
+            }
+        }
+        public static int GetSubTotalMoney(int GroupID)
+        {
+            string connstr = Helpers.GetConnectionString.GetConnection();
+            string querystr = $@"select SUM(TotalPrice) as Price from [Order] where Isdelete = 'false' and GroupID = {GroupID} group by GroupID;";
+            using (SqlConnection con = new SqlConnection(connstr))
+            {
+                SqlCommand command = new SqlCommand(querystr, con);
+                try
+                {
+                    con.Open();
+                    int total = Convert.ToInt32(command.ExecuteScalar());
+                    return total;
+                }
+                catch (Exception e)
+                {
+                    throw e;
+                }
+            }
+        }
+        public static void SetGroupStatus(int StatusID,int GroupID)
+        {
+            string connstr = Helpers.GetConnectionString.GetConnection();
+            string querystr = $@"UPDATE GroupName SET StatusID = {StatusID} where ID = {GroupID}";
+            using (SqlConnection con = new SqlConnection(connstr))
+            {
+                SqlCommand command = new SqlCommand(querystr, con);
+                try
+                {
+                    con.Open();
+                    command.ExecuteNonQuery();
+                    con.Close();
+                }
+                catch(Exception e)
                 {
                     throw e;
                 }

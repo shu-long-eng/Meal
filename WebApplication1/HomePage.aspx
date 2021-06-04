@@ -18,14 +18,19 @@
         <asp:Button ID="CreateBtn" runat="server" Text="建立" OnClick="CreateBtn_Click"/>
     </div>
     <div>
-        <asp:Repeater ID="GroupRepeater" runat="server">
+        <asp:Repeater ID="GroupRepeater" runat="server" OnItemDataBound="GroupRepeater_ItemDataBound">
             <ItemTemplate>
                 <a href="../Detail.aspx?ID=<%# Eval("ID") %>&ShopID=<%# Eval("ShopID") %>">
                     <div class="jumbotron row">
                         <img src="Image/<%# Eval("ImageUrl") %>" /><h1 id="groupname"><p><%# Eval("GroupName") %></p></h1>
                         
                     </div>
-                    主揪:<%# Eval("AccountName") %> 店名:<%# Eval("ShopName") %> 目前人數
+                    主揪:<%# Eval("AccountName") %> 店名:<%# Eval("ShopName") %>
+                    <asp:Repeater ID="Repeater1" runat="server">
+                        <ItemTemplate>
+                            目前人數:<%# Eval("MemberCount") %>
+                        </ItemTemplate>
+                    </asp:Repeater>
                 </a>
             </ItemTemplate>
         </asp:Repeater>

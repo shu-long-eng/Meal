@@ -14,9 +14,6 @@ namespace WebApplication1
     public partial class Detail : System.Web.UI.Page
     {
         private int _groupID = Convert.ToInt32(HttpContext.Current.Request.QueryString["ID"]);//取得GroupID
-
-
-
         static List<MenuModel> menulist = new List<MenuModel>();
         private string _menulist="";
         int ShopID = Convert.ToInt32(HttpContext.Current.Request.QueryString["ShopID"]);
@@ -30,7 +27,7 @@ namespace WebApplication1
             DataTable DetailDT = DBbase.GetGroup(_groupID);
             this.GroupRepeater.DataSource = DetailDT;
             this.GroupRepeater.DataBind();
-            //ShopID = (int)DetailDT.Rows[0]["ShopID"];
+            
             this.MenuRepeater.DataSource = DBbase.GetMenu(ShopID);
             this.MenuRepeater.DataBind();
             var lll = this.MenuRepeater.FindControl("CountList") as DropDownList;
@@ -52,6 +49,17 @@ namespace WebApplication1
             this.MemberRepeater.DataSource = DBbase.GetOrderAccount(_groupID);
             this.MemberRepeater.DataBind();
 
+            
+            this.SubTotalRepeater.DataSource = DBbase.GetSubTotal(_groupID);
+            this.SubTotalRepeater.DataBind();
+            this.SubTotal.Text = DBbase.GetSubTotalMoney(_groupID).ToString();
+
+            if(DetailDT.Rows[0]["StatusID"].ToString() != "0")
+            {
+                this.Button2.Enabled = false;
+            }
+
+            
         }
 
         protected void BackBtn_Click(object sender, EventArgs e)
@@ -133,6 +141,34 @@ namespace WebApplication1
             DBbase.DeleteOrder(AccountID, _groupID);
             string targetUrl = $"~/Detail.aspx?ID={_groupID}&ShopID={ShopID}";
             Response.Redirect(targetUrl);
-        }    
+        }
+
+        protected void GroupRepeater_ItemCommand(object source, RepeaterCommandEventArgs e)
+        {
+            DropDownList list = e.Item.FindControl("StatusList") as DropDownList;
+            int status = Convert.ToInt32(list.SelectedValue);
+            DBbase.SetGroupStatus(status, _groupID);
+
+            Response.Redirect(Request.Url.ToString());
+        }
+
+        protected void GroupRepeater_ItemDataBound(object sender, RepeaterItemEventArgs e)
+        {
+            DropDownList downList = e.Item.FindControl("StatusList") as DropDownList;
+            DataTable DetailDT = DBbase.GetGroup(_groupID);
+            string StatusID = "0";
+            if(DetailDT.Rows.Count == 0)
+            {
+                StatusID = "0";
+            }
+            else
+            {
+                StatusID = DetailDT.Rows[0]["StatusID"].ToString();
+            }
+            
+            downList.SelectedValue = StatusID;
+
+            
+        }
     }
 }
